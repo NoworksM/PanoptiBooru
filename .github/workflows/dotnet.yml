@@ -1,0 +1,33 @@
+name: .NET
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master, develop ]
+
+jobs:
+  Build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: 6.x
+    - name: Restore dependencies
+      run: dotnet restore
+    - name: Build
+      run: dotnet build --no-restore
+  Test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: PanoptiBooru.Server Unit Tests
+        run: dotnet test PanoptiBooru.Server.Tests --verbosity normal --logger "trx;LogFileName=test-results.trx"
+      - name: Report PanoptiBooru.Server Unit Tests
+        uses: dorny/test-reporter@v1
+        if: success() || failure()
+        with:
+          name: PanoptiBooru.Server Unit Tests
+          path: PanoptiBooru.Server/TestResults/test-results.trx
+          reporter: dotnet-trx
